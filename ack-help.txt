@@ -105,6 +105,9 @@ File inclusion/exclusion:
   Directories ignored by default:
     autom4te.cache, blib, _build, .bzr, .cdv, cover_db, CVS, _darcs, ~.dep,
     ~.dot, .git, .hg, ~.nib, .pc, ~.plst, RCS, SCCS, _sgbak and .svn
+    
+  Directory patterns ignored by default:
+    cache$
 
   Files not checked for type:
     /~$/           - Unix backup files
