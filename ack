@@ -1170,6 +1170,7 @@ BEGIN {
         cpp         => [qw( cpp cc cxx m hpp hh h hxx )],
         csharp      => [qw( cs )],
         css         => [qw( css )],
+        delimited   => [qw( csv tsv )],
         elisp       => [qw( el )],
         erlang      => [qw( erl hrl )],
         fortran     => [qw( f f77 f90 f95 f03 for ftn fpp )],
