@@ -460,7 +460,7 @@ sub ignorepattern_filter {
     my $dirname = $_;
     # TODO: cache this pattern?
     my $blacklisted_dir_pattern = join '|', reverse sort keys %ignore_patterns;
-    return $dirname !~ m/(?:$blacklisted_dir_pattern)/i;
+    return $blacklisted_dir_pattern ? $dirname !~ m/(?:$blacklisted_dir_pattern)/i : 1;
 }
 
 sub ignore_filters {
