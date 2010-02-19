@@ -931,7 +931,7 @@ use strict;
 use warnings;
 
 
-our $VERSION = '1.02';
+our $VERSION = '1.06';
 
 
 
@@ -957,6 +957,8 @@ BEGIN {
 
 
 sub files {
+    ($_[0] eq __PACKAGE__) && die 'File::Next::files must not be invoked as File::Next->files';
+
     my ($parms,@queue) = _setup( \%files_defaults, @_ );
     my $filter = $parms->{file_filter};
 
@@ -987,8 +989,8 @@ sub files {
 
 
 
-sub sort_standard($$)   { return $_[0]->[1] cmp $_[1]->[1] };
-sub sort_reverse($$)    { return $_[1]->[1] cmp $_[0]->[1] };
+sub sort_standard($$)   { return $_[0]->[1] cmp $_[1]->[1] }
+sub sort_reverse($$)    { return $_[1]->[1] cmp $_[0]->[1] }
 
 sub reslash {
     my $path = shift;
@@ -1057,8 +1059,7 @@ sub _candidate_files {
     my $follow_symlinks = $parms->{follow_symlinks};
     my $sort_sub = $parms->{sort_files};
 
-    while ( defined ( my $file = readdir $dh ) ) {
-        next if $skip_dirs{$file};
+    for my $file ( grep { !exists $skip_dirs{$_} } readdir $dh ) {
         my $has_stat;
 
         # Only do directory checking if we have a descend_filter
