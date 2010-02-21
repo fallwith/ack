@@ -70,9 +70,9 @@ sub main {
             App::Ack::warn( "Ignoring $nargs argument$s on the command-line while acting as a filter." );
         }
         my $res = App::Ack::Resource::Basic->new( '-' );
-        App::Ack::search_resource( $res, $opt );
+        my $nmatches = App::Ack::search_resource( $res, $opt );
         $res->close();
-        exit 0;
+        $nmatches ? exit 0 : exit 1;
     }
 
     my $file_matching = $opt->{f} || $opt->{lines};
