@@ -789,6 +789,14 @@ To do that, run this with F<sudo> or as root:
 
    ln -s /usr/bin/ack-grep /usr/bin/ack
 
+=head2 Can I do multi-line regexes?
+
+No, ack does not support regexes that match multiple lines.  Doing
+so would require reading in the entire file at a time.
+
+If you want to see lines near your match, use the C<--A>, C<--B>
+and C<--C> switches for displaying context.
+
 =head1 AUTHOR
 
 Andy Lester, C<< <andy at petdance.com> >>
@@ -1120,7 +1128,6 @@ our %types;
 our %type_wanted;
 our %mappings;
 our %ignore_dirs;
-our %ignore_patterns;
 
 our $input_from_pipe;
 our $output_to_pipe;
@@ -1154,10 +1161,6 @@ BEGIN {
         'autom4te.cache'    => 'autoconf',
         'cover_db'          => 'Devel::Cover',
         _build              => 'Module::Build',
-    );
-
-    %ignore_patterns = (
-      'cache$'              => 'Generic cache directory'
     );
 
     %mappings = (
@@ -1194,7 +1197,7 @@ BEGIN {
         plone       => [qw( pt cpt metadata cpy py )],
         python      => [qw( py )],
         rake        => q{Rakefiles},
-        ruby        => [qw( rb rhtml rjs rxml erb rake spec )],
+        ruby        => [qw( rb rhtml rjs rxml erb rake )],
         scala       => [qw( scala )],
         scheme      => [qw( scm ss )],
         shell       => [qw( sh bash csh tcsh ksh zsh )],
@@ -1306,9 +1309,6 @@ sub get_command_line_options {
 
         'ignore-dirs=s'         => sub { shift; my $dir = remove_dir_sep( shift ); $ignore_dirs{$dir} = '--ignore-dirs' },
         'noignore-dirs=s'       => sub { shift; my $dir = remove_dir_sep( shift ); delete $ignore_dirs{$dir} },
-
-        'ignore-patterns=s'    => sub { shift; my $pat = shift; $ignore_patterns{$pat} = '--ignore-patterns' },
-        'noignore-patterns=s'  => sub { shift; my $pat = shift; delete $ignore_patterns{$pat} },
 
         'version'   => sub { print_version_statement(); exit 1; },
         'help|?:s'  => sub { shift; show_help(@_); exit; },
@@ -1496,18 +1496,6 @@ sub ignoredir_filter {
 }
 
 
-sub ignorepattern_filter {
-    my $dirname = $_;
-    # TODO: cache this pattern?
-    my $blacklisted_dir_pattern = join '|', reverse sort keys %ignore_patterns;
-    return $blacklisted_dir_pattern ? $dirname !~ m/(?:$blacklisted_dir_pattern)/i : 1;
-}
-
-sub ignore_filters {
-  &ignoredir_filter && &ignorepattern_filter
-}
-
-
 sub remove_dir_sep {
     my $path = shift;
     $path =~ s/[$dir_sep_chars]$//;
@@ -1674,8 +1662,6 @@ sub show_help {
 
     my $ignore_dirs = _listify( sort { _key($a) cmp _key($b) } keys %ignore_dirs );
 
-    my $ignore_patterns = _listify( sort { _key($a) cmp _key($b) } keys %ignore_patterns );
-
     App::Ack::print( <<"END_OF_HELP" );
 Usage: ack [OPTION]... PATTERN [FILE]
 
@@ -1783,9 +1769,6 @@ File inclusion/exclusion:
 
   Directories ignored by default:
     $ignore_dirs
-    
-  Directory patterns ignored by default:
-    $ignore_patterns
 
   Files not checked for type:
     /~\$/           - Unix backup files
@@ -2379,7 +2362,7 @@ sub get_iterator {
     my $descend_filter
         = $opt->{n} ? sub {0}
         : $opt->{u} ? sub {1}
-        : \&ignore_filters;
+        : \&ignoredir_filter;
 
     my $iter =
         File::Next::files( {
